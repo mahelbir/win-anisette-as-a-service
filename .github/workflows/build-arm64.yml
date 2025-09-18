@@ -1,0 +1,58 @@
+name: Simple ARM64 Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup MSVC ARM64 Cross Compiler
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: amd64_arm64
+        
+    - name: Compile C++ files directly
+      run: |
+        # Ana kaynak dosyalarını bulun ve derleyin
+        # Örnek: 
+        cl.exe /EHsc /O2 /std:c++17 *.cpp /Fe:win-anisette-arm64.exe
+        # veya spesifik dosyalar:
+        # cl.exe /EHsc /O2 main.cpp server.cpp /Fe:anisette-server.exe
+        
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: anisette-arm64-executable
+        path: "*.exe"
+        
+  # Visual Studio proje dosyası varsa:
+  build-with-vcxproj:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Build with MSBuild for ARM64
+      run: |
+        # .sln veya .vcxproj dosyası varsa:
+        msbuild YourProject.sln /p:Configuration=Release /p:Platform=ARM64
+        # veya:
+        # msbuild YourProject.vcxproj /p:Configuration=Release /p:Platform=ARM64
+        
+    - name: Upload binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: msbuild-arm64-output
+        path: |
+          **/ARM64/Release/*.exe
+          **/ARM64/Release/*.dll
